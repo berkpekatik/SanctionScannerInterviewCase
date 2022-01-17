@@ -14,23 +14,23 @@ namespace SanctionScannerInterviewCase
     {
         static void Main(string[] args)
         {
-            var webService = new WebService();
+            var webService = new WebService();//Servisler çağırılıyor.
             var dataProccesorService = new DataProccesorService();
 
-            var detailPageList = new List<DetailPageModel>();
+            var detailPageList = new List<DetailPageModel>();//Ürün sayfası için istenilen model oluşturuluyor.
 
-            var homePageHtml = webService.DownloadData(string.Empty);
+            var homePageHtml = webService.DownloadData(string.Empty);//Anasayfa verileri indiriliyor.
             if (homePageHtml != null)
             {
-                var homePageShowCase = dataProccesorService.BuildMainPage(homePageHtml);
+                var homePageShowCase = dataProccesorService.BuildMainPage(homePageHtml);//Anasayfa vitrini oluşturuluyor.
                 foreach (var item in homePageShowCase)
                 {
                     var detailPageHtml = webService.DownloadData(item.Url);
-                    detailPageList.Add(dataProccesorService.BuildDetailPage(detailPageHtml));
+                    detailPageList.Add(dataProccesorService.BuildDetailPage(detailPageHtml));//Ürün sayfasının detaylarını oluşturuluyor.
                 }
             }
 
-            decimal avgPrice = 0m;
+            decimal avgPrice = 0m;//Ortalama fiyat için değişken
             foreach (var item in detailPageList)
             {
                 Console.WriteLine($"{item.Title} {item.Price} {item.Currency}");
@@ -42,8 +42,8 @@ namespace SanctionScannerInterviewCase
             {
                 Title = x.Title,
                 Price = x.Price + " " + x.Currency
-            });
-            File.WriteAllText(Environment.CurrentDirectory + @"\data.txt", JsonConvert.SerializeObject(txtModel));
+            });//İstenilen .TXT dosyası için fiyatlar ve isim çıktısı alınıyor
+            File.WriteAllText(Environment.CurrentDirectory + @"\data.txt", JsonConvert.SerializeObject(txtModel)); //ve TXT dosyası oluşturuluyor.
         }
     }
 }

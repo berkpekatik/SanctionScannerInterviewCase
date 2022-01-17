@@ -22,14 +22,15 @@ namespace SanctionScannerInterviewCase.Services
                 var model = new List<MainPageModel>();
                 var doc = new HtmlDocument();
                 doc.LoadHtml(data);
-                var findedHtml = doc.DocumentNode.SelectNodes(@"//*[@id='container']/div[3]/div/div[3]/div[3]/ul/li").Descendants("a");
+                var findedHtml = doc.DocumentNode.SelectNodes(@"//*[@id='container']/div[3]/div/div[3]/div[3]/ul/li").Descendants("a");//Anasayfa vitrin içerisinde ki ul içerisinde li listesi getiriliyor.
                 foreach (var item in findedHtml)
                 {
-                    model.Add(new MainPageModel
-                    {
-                        Url = item.Attributes["href"].Value,
-                        Text = regexParser(item.InnerText, regexSpaces),
-                    });
+                    if (item.Attributes["href"].Value.StartsWith(@"/ilan")) //reklamları atlamak için /ilan path olanlar ayıklanıyor.
+                        model.Add(new MainPageModel
+                        {
+                            Url = item.Attributes["href"].Value,
+                            Text = regexParser(item.InnerText, regexSpaces),//regex yöntemiyle text sadeleştiriliyor.
+                        });
                 }
                 return model;
             }
@@ -48,10 +49,10 @@ namespace SanctionScannerInterviewCase.Services
                 var detailPage = new DetailPageModel();
                 var doc = new HtmlDocument();
                 doc.LoadHtml(data);
-                var findedAttrHtml = doc.DocumentNode.SelectNodes(@"//*[@id='classifiedDetail']/div/div[2]/div[2]/ul/li");
+                var findedAttrHtml = doc.DocumentNode.SelectNodes(@"//*[@id='classifiedDetail']/div/div[2]/div[2]/ul/li");//İlan içerisindeki detaylar getiriliyor.
                 foreach (var item in findedAttrHtml)
                 {
-                    var title = item.Descendants("strong").FirstOrDefault();
+                    var title = item.Descendants("strong").FirstOrDefault(); //strong ve span türünde olduğu için sınırlandırılıyor.
                     var value = item.Descendants("span").FirstOrDefault();
                     attrList.Add(new AttributeModel
                     {
@@ -59,15 +60,26 @@ namespace SanctionScannerInterviewCase.Services
                         Value = value != null ? regexParser(regexParser(value.InnerText, regexSpaces), regexHtml) : "",
                     });
                 }
-                var price = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h3/text()").InnerText, regexNumber);
-                var currency = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h3/text()").InnerText, regexLetter);
-                var detailTitle = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[1]/h1").InnerText, regexSpaces);
-                var city = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[1]").InnerText, regexSpaces);
-                var region = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[2]").InnerText, regexSpaces);
-                var state = "Diğer";
-                if (doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[3]") != null)
+                var price = "";
+                var divFinder = 2;
+                if (doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()") != null) //site içerisinde anlamadığım bir olay var test ederek çözdüm bazı sayfalarda xpath içerisinde div numarası değişiyor bu yüzden böyle bir şey ile çözdüm.
                 {
-                    state = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[3]").InnerText, regexSpaces);
+                    price = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()").InnerText;
+                }
+                else
+                {
+                    divFinder = 3;
+                    price = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()").InnerText;
+                }
+                var newPrice = regexParser(price, regexNumber);
+                var currency = regexParser(price, regexLetter);
+                var detailTitle = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[1]/h1").InnerText, regexSpaces);
+                var city = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[1]").InnerText, regexSpaces);
+                var region = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[2]").InnerText, regexSpaces);
+                var state = "Diğer";
+                if (doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]") != null)
+                {
+                    state = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]").InnerText, regexSpaces);
                 }
                 var desc = doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDescription']").InnerHtml;
                 detailPage.AttributeList = attrList;
@@ -82,6 +94,7 @@ namespace SanctionScannerInterviewCase.Services
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 return null;
             }
         }
