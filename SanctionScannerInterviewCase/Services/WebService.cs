@@ -12,6 +12,7 @@ namespace SanctionScannerInterviewCase.Service
         public string DownloadData(string path)
         {
             client = new RestClient(siteUrl + path);
+            client.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
             client.Timeout = -1;
             var request = new RestRequest(Method.GET);
             IRestResponse response = client.Execute(request);

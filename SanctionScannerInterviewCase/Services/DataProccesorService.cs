@@ -56,7 +56,7 @@ namespace SanctionScannerInterviewCase.Services
                     attrList.Add(new AttributeModel
                     {
                         Title = title != null ? regexParser(title.InnerText, regexSpaces) : "",
-                        Value = value != null ? regexParser(regexParser(value.InnerText, regexSpaces),regexHtml) : "",
+                        Value = value != null ? regexParser(regexParser(value.InnerText, regexSpaces), regexHtml) : "",
                     });
                 }
                 var price = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h3/text()").InnerText, regexNumber);
@@ -64,7 +64,11 @@ namespace SanctionScannerInterviewCase.Services
                 var detailTitle = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[1]/h1").InnerText, regexSpaces);
                 var city = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[1]").InnerText, regexSpaces);
                 var region = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[2]").InnerText, regexSpaces);
-                var state = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[3]").InnerText, regexSpaces);
+                var state = "Diğer";
+                if (doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[3]") != null)
+                {
+                    state = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[2]/div[2]/h2/a[3]").InnerText, regexSpaces);
+                }
                 var desc = doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDescription']").InnerHtml;
                 detailPage.AttributeList = attrList;
                 detailPage.City = city;
@@ -82,7 +86,7 @@ namespace SanctionScannerInterviewCase.Services
             }
         }
 
-        private string regexParser(string text,string regex)
+        private string regexParser(string text, string regex)
         {
             return Regex.Replace(text, regex, string.Empty);
         }
