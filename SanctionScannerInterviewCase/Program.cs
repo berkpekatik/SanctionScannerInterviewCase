@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SanctionScannerInterviewCase.Service;
+using System;
 
 namespace SanctionScannerInterviewCase
 {
@@ -6,7 +7,7 @@ namespace SanctionScannerInterviewCase
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var webService = new WebService();
         }
     }
 }
