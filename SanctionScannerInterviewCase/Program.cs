@@ -26,7 +26,12 @@ namespace SanctionScannerInterviewCase
                 foreach (var item in homePageShowCase)
                 {
                     var detailPageHtml = webService.DownloadData(item.Url);
-                    detailPageList.Add(dataProccesorService.BuildDetailPage(detailPageHtml));//Ürün sayfasının detaylarını oluşturuluyor.
+                    var detailPage = dataProccesorService.BuildDetailPage(detailPageHtml);
+                    if (detailPage != null)
+                    {
+                        detailPageList.Add(detailPage);//Ürün sayfasının detaylarını oluşturuluyor.
+                        Thread.Sleep(10000);
+                    }
                 }
             }
 
