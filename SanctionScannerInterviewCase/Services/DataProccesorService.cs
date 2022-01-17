@@ -77,7 +77,7 @@ namespace SanctionScannerInterviewCase.Services
                 var city = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[1]").InnerText, regexSpaces);
                 var region = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[2]").InnerText, regexSpaces);
                 var state = "Diğer";
-                if (doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]") != null)
+                if (doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]") != null)
                 {
                     state = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]").InnerText, regexSpaces);
                 }
@@ -86,7 +86,7 @@ namespace SanctionScannerInterviewCase.Services
                 detailPage.City = city;
                 detailPage.Currency = currency;
                 detailPage.Description = desc;
-                detailPage.Price = decimal.Parse(price);
+                detailPage.Price = decimal.Parse(newPrice);
                 detailPage.Region = region;
                 detailPage.State = state;
                 detailPage.Title = detailTitle;
