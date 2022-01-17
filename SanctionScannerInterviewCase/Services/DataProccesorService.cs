@@ -1,5 +1,8 @@
 ﻿using HtmlAgilityPack;
+using SanctionScannerInterviewCase.Constants;
+using SanctionScannerInterviewCase.Interfaces;
 using SanctionScannerInterviewCase.Models;
+using SanctionScannerInterviewCase.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +12,8 @@ using System.Threading.Tasks;
 
 namespace SanctionScannerInterviewCase.Services
 {
-    public class DataProccesorService
+    public class DataProccesorService : IDataProccesorService
     {
-        private string regexSpaces = "[\\r|\\n|\\t]\\s\\s+";
-        private string regexHtml = @"<[^>]+>|&nbsp;";
-        private string regexNumber = @"[^0-9.]";
-        private string regexLetter = @"[^A-Z]";
         public List<MainPageModel> BuildMainPage(string data)
         {
             try
@@ -22,14 +21,14 @@ namespace SanctionScannerInterviewCase.Services
                 var model = new List<MainPageModel>();
                 var doc = new HtmlDocument();
                 doc.LoadHtml(data);
-                var findedHtml = doc.DocumentNode.SelectNodes(@"//*[@id='container']/div[3]/div/div[3]/div[3]/ul/li").Descendants("a");//Anasayfa vitrin içerisinde ki ul içerisinde li listesi getiriliyor.
+                var findedHtml = doc.DocumentNode.SelectNodes(@"//*[@id='container']/div[3]/div/div[3]/div[3]/ul/li").Descendants("a");
                 foreach (var item in findedHtml)
                 {
-                    if (item.Attributes["href"].Value.StartsWith(@"/ilan")) //reklamları atlamak için /ilan path olanlar ayıklanıyor.
+                    if (item.Attributes["href"].Value.StartsWith(@"/ilan"))
                         model.Add(new MainPageModel
                         {
                             Url = item.Attributes["href"].Value,
-                            Text = regexParser(item.InnerText, regexSpaces),//regex yöntemiyle text sadeleştiriliyor.
+                            Text = item.InnerText.Replace(Config.RegexSpaces),
                         });
                 }
                 return model;
@@ -49,20 +48,20 @@ namespace SanctionScannerInterviewCase.Services
                 var detailPage = new DetailPageModel();
                 var doc = new HtmlDocument();
                 doc.LoadHtml(data);
-                var findedAttrHtml = doc.DocumentNode.SelectNodes(@"//*[@id='classifiedDetail']/div/div[2]/div[2]/ul/li");//İlan içerisindeki detaylar getiriliyor.
+                var findedAttrHtml = doc.DocumentNode.SelectNodes(@"//*[@id='classifiedDetail']/div/div[2]/div[2]/ul/li");
                 foreach (var item in findedAttrHtml)
                 {
-                    var title = item.Descendants("strong").FirstOrDefault(); //strong ve span türünde olduğu için sınırlandırılıyor.
+                    var title = item.Descendants("strong").FirstOrDefault();
                     var value = item.Descendants("span").FirstOrDefault();
                     attrList.Add(new AttributeModel
                     {
-                        Title = title != null ? regexParser(title.InnerText, regexSpaces) : "",
-                        Value = value != null ? regexParser(regexParser(value.InnerText, regexSpaces), regexHtml) : "",
+                        Title = title != null ? title.InnerText.Replace(Config.RegexSpaces) : "",
+                        Value = value != null ? value.InnerText.Replace(Config.RegexSpaces).Replace(Config.RegexHtml) : "",
                     });
                 }
                 var price = "";
                 var divFinder = 2;
-                if (doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()") != null) //site içerisinde anlamadığım bir olay var test ederek çözdüm bazı sayfalarda xpath içerisinde div numarası değişiyor bu yüzden böyle bir şey ile çözdüm.
+                if (doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()") != null)
                 {
                     price = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()").InnerText;
                 }
@@ -71,15 +70,15 @@ namespace SanctionScannerInterviewCase.Services
                     divFinder = 3;
                     price = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h3/text()").InnerText;
                 }
-                var newPrice = regexParser(price, regexNumber);
-                var currency = regexParser(price, regexLetter);
-                var detailTitle = regexParser(doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[1]/h1").InnerText, regexSpaces);
-                var city = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[1]").InnerText, regexSpaces);
-                var region = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[2]").InnerText, regexSpaces);
+                var newPrice = price.Replace(Config.RegexNumber);
+                var currency = price.Replace(Config.RegexLetter);
+                var detailTitle = doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDetail']/div/div[1]/h1").InnerText.Replace(Config.RegexSpaces);
+                var city = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[1]").InnerText.Replace(Config.RegexSpaces);
+                var region = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[2]").InnerText.Replace(Config.RegexSpaces);
                 var state = "Diğer";
                 if (doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]") != null)
                 {
-                    state = regexParser(doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]").InnerText, regexSpaces);
+                    state = doc.DocumentNode.SelectSingleNode($"//*[@id='classifiedDetail']/div/div[{divFinder}]/div[2]/h2/a[3]").InnerText.Replace(Config.RegexSpaces);
                 }
                 var desc = doc.DocumentNode.SelectSingleNode("//*[@id='classifiedDescription']").InnerHtml;
                 detailPage.AttributeList = attrList;
@@ -97,11 +96,6 @@ namespace SanctionScannerInterviewCase.Services
                 Console.WriteLine(e.Message);
                 return null;
             }
-        }
-
-        private string regexParser(string text, string regex)
-        {
-            return Regex.Replace(text, regex, string.Empty);
         }
     }
 }

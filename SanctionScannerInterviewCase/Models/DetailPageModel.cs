@@ -10,7 +10,7 @@ namespace SanctionScannerInterviewCase.Models
     {
         public string Title { get; set; }
         public decimal Price { get; set; }
-        public string Currency { get; set; }//Enum yapılabilir.
+        public string Currency { get; set; }
         public string City { get; set; }
         public string Region { get; set; }
         public string State { get; set; }
